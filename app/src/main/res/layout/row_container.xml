@@ -1,0 +1,96 @@
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainmenu"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:foreground="@drawable/blur">
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/homeScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/parentView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="15dp"
+            android:weightSum="1">
+
+            <Button
+                android:id="@+id/addNew"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="@string/add_exercise"
+                style="@style/Widget.AppCompat.Button"/>
+
+            <Button
+                android:id="@+id/supersetButton"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_superset" />
+
+            <Button
+                android:id="@+id/addPyramid"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_pyramid" />
+
+            <Button
+                android:id="@+id/addRest"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_rest" />
+
+            <Button
+                android:id="@+id/saveChanges"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:text="@string/save" />
+
+            <Button
+                android:id="@+id/start_workout"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:backgroundTint="@color/start"
+                android:text="@string/start" />
+
+            <Button
+                android:id="@+id/next_exercise"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:text="@string/next_exercise" />
+
+            <Button
+                android:id="@+id/resume"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:text="@string/Resume" />
+
+            <Button
+                android:id="@+id/stop_workout"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:text="@string/stop_workout"
+                android:backgroundTint="@color/stop"/>
+
+            <Button
+                android:id="@+id/edit_workout"
+                android:layout_width="167dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:text="@string/edit_workout" />
+        </LinearLayout>
+    </ScrollView>
+    </FrameLayout>

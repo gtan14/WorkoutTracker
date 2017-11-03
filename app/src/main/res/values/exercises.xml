@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="exercises">
+        <item>Bench</item>
+        <item>Squat</item>
+        <item>Deadlift</item>
+        <item>Tricep Pushdown</item>
+        <item>Tricep Extension</item>
+        <item>Tricep Kickback</item>
+        <item>Close Grip Bench</item>
+        <item>Hammer Curl</item>
+        <item>Preacher Curl</item>
+        <item>Cable Curl</item>
+        <item>Lat Pulldown</item>
+        <item>Close Grip Lat Pulldown</item>
+        <item>Facepulls</item>
+        <item>Cable Rows</item>
+        <item>Bent Over Rows</item>
+        <item>Dumbbell Rows</item>
+        <item>Pullups</item>
+        <item>Pushups</item>
+        <item>OHP</item>
+        <item>Seated Dumbbell Press</item>
+        <item>Side Lateral Raise</item>
+        <item>Front Lateral Raise</item>
+        <item>Rear Delt Fly</item>
+        <item>Barbell Shrugs</item>
+        <item>Dumbbell Shrugs</item>
+        <item>Arnold Press</item>
+        <item>Stiff Legged Deadlifts</item>
+        <item>Box Squat</item>
+        <item>Leg Press</item>
+        <item>Calf Raises</item>
+        <item>Cable Fly</item>
+        <item>Hamstring Curl</item>
+        <item>Glute Kickbacks</item>
+        <item>Hack Squat</item>
+        <item>Leg Extension</item>
+        <item>Clean and Jerk</item>
+        <item>Snatch</item>
+        <item>Power Clean</item>
+        <item>Front Squat</item>
+        <item>Zercher Squat</item>
+        <item>Paused Deadlifts</item>
+        <item>Deficit Deadlifts</item>
+        <item>Paused Squats</item>
+        <item>Barbell Curl</item>
+        <item>DB Supinated Curl</item>
+        <item>RDL</item>
+        <item>Lunges</item>
+        <item>GHR</item>
+        <item>Back Extension</item>
+    </string-array>
+</resources>

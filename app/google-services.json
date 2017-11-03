@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "721050829180",
+    "firebase_url": "https://workouttracker-dd682.firebaseio.com",
+    "project_id": "workouttracker-dd682",
+    "storage_bucket": "workouttracker-dd682.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721050829180:android:fa88754942a6ff5f",
+        "android_client_info": {
+          "package_name": "com.geraldtan.workouttracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "721050829180-e140ed35regt1pcdrlqol76m3oq1b82r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geraldtan.workouttracker",
+            "certificate_hash": "4d5d09e730fecf3eefeee6597d03866be93fbfeb"
+          }
+        },
+        {
+          "client_id": "721050829180-v0kijgk28di01tb888qjpg2ti3ptu3m8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRSoJjffLnk62sgvzBRFrT48DqGPT55yI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "721050829180-v0kijgk28di01tb888qjpg2ti3ptu3m8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

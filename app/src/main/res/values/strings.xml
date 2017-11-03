@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">Workout Tracker</string>
+    <string name="squat">Squat</string>
+    <string name="bench">Bench</string>
+    <string name="deadlift">Deadlift</string>
+    <string name="cj">Clean &amp; Jerk</string>
+    <string name="max">Max</string>
+    <string name="snatch">Snatch</string>
+    <string name="powerClean">Power Clean</string>
+    <string name="roundConvertedPercent">Round converted percent</string>
+    <string name="round2.5">Round to 2.5 multiple</string>
+    <string name="round5">Round to 5 multiple</string>
+    <string name="add_exercise">+Add Exercise</string>
+    <string name="exercise_hint">Exercise</string>
+    <string name="set">Set</string>
+    <string name="reps">Rep</string>
+    <string name="change">Change</string>
+    <string name="sound">Sound</string>
+    <string name="vibrate">Vibrate</string>
+    <string name="add_pyramid">+Add pyramid sets</string>
+    <string name="change_position">Change position</string>
+    <string name="X">X</string>
+    <string name="weight">Weight</string>
+    <string name="add_superset">+Add superset</string>
+    <string name="add_rest">+Add Rest Time</string>
+    <string name="minutes">Min</string>
+    <string name="seconds">Sec</string>
+    <string name="semi_colon">:</string>
+    <string name="rest">Rest</string>
+    <string name="save">Save Changes</string>
+    <string name="home">Home</string>
+    <string name="workouts">Workouts</string>
+    <string name="start">Start</string>
+    <string name="edit_workout">Edit Workout</string>
+    <string name="next_exercise">Next</string>
+    <string name="stop_workout">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="Resume">Resume</string>
+    <string name="time_elapsed">Time Elapsed</string>
+    <string name="file_name">Name</string>
+    <string name="cancel">Cancel</string>
+    <string name="saveAs">Save</string>
+    <string name="delete">Delete</string>
+    <string name="override">Do you want to override this file?</string>
+    <item name="row_name" type="id" />
+    <string name="title_activity_navigation_drawer">navigationDrawer</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_nav_drawer">navDrawer</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_main_activity">Main Activity</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_up">Sign up</string>
+    <string name="keep_logged_in">Keep logged in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+
+    <!--Strings related to signup -->
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="reenter_password">Re-enter password</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+</resources>
