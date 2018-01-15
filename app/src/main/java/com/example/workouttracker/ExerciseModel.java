@@ -1,11 +1,135 @@
 package com.example.workouttracker;
 
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.ImageView;
+
+import com.google.firebase.database.Exclude;
+
 /**
  * Created by Gerald on 7/12/2017.
  */
 
-public class ExerciseModel {
-    private String exercise, sets, reps, view, minutes, seconds, time, weight, childCount;
+public class ExerciseModel implements RowType {
+    public String exercise, sets, reps, view, minutes, seconds, time, weight, childCount;
+    private boolean exerciseError, setError, repError, weightError, weightEmpty, disableText;
+    private EditText weightEditText, setsEditText, repsEditText;
+    private AutoCompleteTextView exerciseEditText;
+    private ImageView dragHandle;
+    private ExerciseRowTextWatcher exerciseRowTextWatcher;
+
+    public ExerciseModel(){
+
+    }
+
+    public boolean isDisableText(){
+        return disableText;
+    }
+
+    public void setDisableText(boolean disableText){
+        this.disableText = disableText;
+    }
+
+    public boolean isWeightEmpty(){
+        return weightEmpty;
+    }
+
+    public void setWeightEmpty(boolean weightEmpty){
+        this.weightEmpty = weightEmpty;
+    }
+
+    public boolean isWeightError(){
+        return weightError;
+    }
+
+    public void setWeightError(boolean weightError){
+        this.weightError = weightError;
+    }
+
+    public boolean isExerciseError(){
+        return exerciseError;
+    }
+
+    public void setExerciseError(boolean exerciseError){
+        this.exerciseError = exerciseError;
+    }
+
+    public boolean isSetError(){
+        return setError;
+    }
+
+    public void setSetError(boolean setError){
+        this.setError = setError;
+    }
+
+    public boolean isRepError(){
+        return repError;
+    }
+
+    public void setRepError(boolean repError){
+        this.repError = repError;
+    }
+
+    @Exclude
+    public ExerciseRowTextWatcher getExerciseRowTextWatcher(){
+        return exerciseRowTextWatcher;
+    }
+
+    @Exclude
+    public void setExerciseRowTextWatcher(ExerciseRowTextWatcher exerciseRowTextWatcher){
+        this.exerciseRowTextWatcher = exerciseRowTextWatcher;
+    }
+
+
+    @Exclude
+    public ImageView getDragHandle(){
+        return dragHandle;
+    }
+
+    @Exclude
+    public void setDragHandle(ImageView dragHandle){
+        this.dragHandle = dragHandle;
+    }
+
+    @Exclude
+    public AutoCompleteTextView getExerciseEditText(){
+        return exerciseEditText;
+    }
+
+    @Exclude
+    public void setExerciseEditText(AutoCompleteTextView exerciseEditText){
+        this.exerciseEditText = exerciseEditText;
+    }
+
+    @Exclude
+    public EditText getWeightEditText(){
+        return weightEditText;
+    }
+
+    @Exclude
+    public void setWeightEditText(EditText weightEditText){
+        this.weightEditText = weightEditText;
+    }
+
+    @Exclude
+    public EditText getSetsEditText(){
+        return setsEditText;
+    }
+
+    @Exclude
+    public void setSetsEditText(EditText setsEditText){
+        this.setsEditText = setsEditText;
+    }
+
+    @Exclude
+    public EditText getRepsEditText(){
+        return repsEditText;
+    }
+
+    @Exclude
+    public void setRepsEditText(EditText repsEditText){
+        this.repsEditText = repsEditText;
+    }
 
     public String getChildCount(){
         return childCount;

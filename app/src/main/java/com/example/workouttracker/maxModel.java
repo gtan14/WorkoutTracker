@@ -1,68 +1,44 @@
 package com.example.workouttracker;
 
+import com.google.firebase.database.Exclude;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * Created by Gerald on 9/24/2017.
  */
 
 public class maxModel {
 
-    private String maxSquat, maxBench, maxDeadlift, maxCJ, maxSnatch, maxPowerClean;
+    private String exercise, max;
+    private MaxRowTextWatcher maxRowTextWatcher;
 
-    //getter and setter for squat
-    public String getMaxSquat(){
-        return maxSquat;
+    public String getExercise(){
+        return exercise;
     }
 
-    public void setMaxSquat(String maxSquat){
-        this.maxSquat = maxSquat;
+    public String getMax(){
+        return max;
     }
 
-
-    //getter and setter for bench
-    public String getMaxBench(){
-        return maxBench;
+    public void setExercise(String exercise){
+        this.exercise = exercise;
     }
 
-    public void setMaxBench(String maxBench){
-        this.maxBench = maxBench;
+    public void setMax(String max){
+        this.max = max;
     }
 
-
-    //getter and setter for deadlift
-    public String getMaxDeadlift(){
-        return maxDeadlift;
+    @Exclude
+    public MaxRowTextWatcher getMaxRowTextWatcher(){
+        return maxRowTextWatcher;
     }
 
-    public void setMaxDeadlift(String maxDeadlift){
-        this.maxDeadlift = maxDeadlift;
+    @Exclude
+    public void setMaxRowTextWatcher(MaxRowTextWatcher maxRowTextWatcher){
+        this.maxRowTextWatcher = maxRowTextWatcher;
     }
 
-
-    //getter and setter for cj
-    public String getMaxCJ(){
-        return maxCJ;
-    }
-
-    public void setMaxCJ(String maxCJ){
-        this.maxCJ = maxCJ;
-    }
-
-
-    //getter and setter for snatch
-    public String getMaxSnatch(){
-        return maxSnatch;
-    }
-
-    public void setMaxSnatch(String maxSnatch){
-        this.maxSnatch = maxSnatch;
-    }
-
-    //getter and setter for power clean
-    public String getMaxPowerClean(){
-        return maxPowerClean;
-    }
-
-    public void setMaxPowerClean(String maxPowerClean){
-        this.maxPowerClean = maxPowerClean;
-    }
 }

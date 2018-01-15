@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="37sp"
-    android:paddingBottom="32sp">
+    android:background="@android:color/white"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
 
 </LinearLayout>

@@ -1,8 +1,10 @@
 package com.example.workouttracker;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,7 +17,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -41,28 +45,28 @@ public class SignupActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private final String TAG = "FIREBASE";
     FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("workoutTracker");
+    DatabaseReference myRef = database.getReference("users");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sign_up);
 
-        //view initialization
-        email = (EditText) findViewById(R.id.email_sign_up);
-        password = (EditText) findViewById(R.id.password_sign_up);
-        reenterPass = (EditText) findViewById(R.id.reenter_pass_sign_up);
-        firstName = (EditText) findViewById(R.id.first_name_sign_up);
-        lastName = (EditText) findViewById(R.id.last_name_sign_up);
+        //  view initialization
+        email = findViewById(R.id.email_sign_up);
+        password = findViewById(R.id.password_sign_up);
+        reenterPass = findViewById(R.id.reenter_pass_sign_up);
+        firstName = findViewById(R.id.first_name_sign_up);
+        lastName = findViewById(R.id.last_name_sign_up);
 
-        cancel = (Button) findViewById(R.id.cancel_signup_button);
-        signup = (Button) findViewById(R.id.sign_up_button);
+        cancel = findViewById(R.id.cancel_signup_button);
+        signup = findViewById(R.id.sign_up_button);
 
-        emailTextInputLayout = (TextInputLayout) findViewById(R.id.email_text_input_layout);
-        passwordTextInputLayout = (TextInputLayout) findViewById(R.id.password_text_input_layout);
-        reenterPassTextInputLayout = (TextInputLayout) findViewById(R.id.reenter_pass_text_input_layout);
-        firstNameTextInputLayout = (TextInputLayout) findViewById(R.id.first_name_text_input_layout);
-        lastNameTextInputLayout = (TextInputLayout) findViewById(R.id.last_name_text_input_layout);
+        emailTextInputLayout = findViewById(R.id.email_text_input_layout);
+        passwordTextInputLayout = findViewById(R.id.password_text_input_layout);
+        reenterPassTextInputLayout = findViewById(R.id.reenter_pass_text_input_layout);
+        firstNameTextInputLayout = findViewById(R.id.first_name_text_input_layout);
+        lastNameTextInputLayout = findViewById(R.id.last_name_text_input_layout);
 
 
         mAuth = FirebaseAuth.getInstance();
@@ -84,13 +88,17 @@ public class SignupActivity extends AppCompatActivity {
     }
 
 
-    //method that cancels signup
+    //  method that cancels signup
     public void cancelSignup(View view){
 
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
 
+    //  signup btn on click
+    //  checks for any input errors
+    //  if no errors, take user back to login screen
+    //  if errors, display toast
     public void signup(View view){
 
         String emailString = email.getText().toString();
@@ -99,6 +107,10 @@ public class SignupActivity extends AppCompatActivity {
         String firstNameString = firstName.getText().toString();
         String lastNameString = lastName.getText().toString();
         boolean proceedToSignup = true;
+
+        /*
+            Error will show if any of the text fields are empty
+        */
 
         if(emailString.isEmpty()){
             emailTextInputLayout.setError("Enter email");
@@ -132,11 +144,16 @@ public class SignupActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
 
-                            // If sign in fails, display a message to the user. If sign in succeeds
-                            // the auth state listener will be notified and logic to handle the
-                            // signed in user can be handled in the listener.
+                            //  If sign in fails, display a message to the user. If sign in succeeds
+                            //  the auth state listener will be notified and logic to handle the
+                            //  signed in user can be handled in the listener.
                             if (!task.isSuccessful()) {
-                                Toast.makeText(SignupActivity.this, "Signup failed", Toast.LENGTH_SHORT).show();
+                                if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                                    Toast.makeText(SignupActivity.this, "Email already exists", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    Toast.makeText(SignupActivity.this, "Signup failed", Toast.LENGTH_SHORT).show();
+                                }
                             }
                             else{
                                 createNewUser(email.getText().toString(), firstName.getText().toString(), lastName.getText().toString());
@@ -151,7 +168,7 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-    //creates a new user in firebase with attr: email, first name, and last name
+    //  creates a new user in firebase with attr: email, first name, and last name
     private void createNewUser(String email, String firstName, String lastName) {
 
         User userFromRegistration = new User();
@@ -161,10 +178,8 @@ public class SignupActivity extends AppCompatActivity {
         userFromRegistration.setLastName(lastName);
 
         String emailString = userFromRegistration.getEmail().replace(".", ",");
-        //String firstNameString = userFromRegistration.getFirstName();
-        //String lastNameString = userFromRegistration.getLastName();
 
-        myRef.child("users").child(emailString).setValue(userFromRegistration);
+        myRef.child(emailString).setValue(userFromRegistration);
     }
 
     @Override

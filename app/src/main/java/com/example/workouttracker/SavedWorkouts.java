@@ -1,11 +1,20 @@
 package com.example.workouttracker;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.NinePatchDrawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -17,33 +26,39 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-
-import static com.example.workouttracker.R.id.timeCompleted;
-import static com.example.workouttracker.R.id.view;
-import static com.example.workouttracker.R.id.workout;
-import static com.example.workouttracker.R.id.workoutLoaderRelativeLayout;
+import java.util.List;
 
 
-public class SavedWorkouts extends Fragment {
-    LinearLayout savedWorkoutContainer;
+
+public class SavedWorkouts extends Fragment{
     onLoadWorkout onLoadWorkout;
-    private TextView tableName;
-    private TextView timeElapsed;
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference myRef;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private MainActivity activity;
+    private List<SavedWorkoutsModel> savedWorkoutsModelList = new ArrayList<>();
+    public RecyclerView recyclerView;
+    private SavedWorkoutsAdapter savedWorkoutsAdapter;
+    private OnStartDragListener onStartDragListener;
+    public ItemTouchHelper itemTouchHelper;
 
 
-
-    //Calls loadWorkout from MainActivity whenever a relative layout is clicked
+    //  Calls loadWorkout from MainActivity whenever a workout is clicked
     public interface onLoadWorkout{
         public void loadWorkout(String workoutName);
     }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -52,6 +67,22 @@ public class SavedWorkouts extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement onLoadWorkout ");
         }
+        if(context instanceof MainActivity){
+            activity = (MainActivity) context;
+        }
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
     }
 
     @Override
@@ -60,9 +91,6 @@ public class SavedWorkouts extends Fragment {
     }
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        //returning our layout file
-        //change R.layout.yourlayoutfilename for each of your fragments
-
         return inflater.inflate(R.layout.saved_workouts, container, false);
     }
 
@@ -70,114 +98,114 @@ public class SavedWorkouts extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        getActivity().setTitle("Saved Workouts");
-        savedWorkoutContainer = (LinearLayout) getActivity().findViewById(R.id.savedWorkoutsContainer);
+        recyclerView = view.findViewById(R.id.savedWorkoutsRecyclerView);
+
     }
 
     @Override
-    public void onActivityCreated(Bundle bundle){
+    public void onActivityCreated(Bundle bundle) {
         super.onActivityCreated(bundle);
 
-        addViewWithText();
+        activity.setTitle("Saved Workouts");
+
+        //  initialize firebase and recyclerview
+        //  adds all the workouts to recyclerview
+        initFirebase();
+        initRecyclerView();
+        addWorkoutToAdapter();
 
     }
 
-    //Method to add a relative layout with corresponding workout name and time, if there is one
-    public void addViewWithText(){
-        final LayoutInflater layoutInflater = (LayoutInflater) getActivity().getLayoutInflater();
-        FirebaseDatabase.getInstance().getReference().child("workoutTracker").child("workouts")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            ExerciseModel exerciseModel = snapshot.getValue(ExerciseModel.class);
-                            String workoutName = snapshot.getKey();
 
-                            if(tableName != null && timeElapsed != null) {
-                                if (workoutName.equals(tableName.getText().toString() + "TimeTable")) {
-                                    timeElapsed.setText(exerciseModel.getTime());
-                                    tableName = null;
-                                    timeElapsed = null;
-                                }
-                            }
+    //  Method to add workout with corresponding time table to recycler view
+    //  orders the workouts by orderNumber and loops through all the workouts saved
+    public void addWorkoutToAdapter(){
+        Query query =  myRef.child("workouts").orderByChild("orderNumber");
+            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            savedWorkoutsModelList.clear();
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String workoutName = snapshot.getKey();
+                                SavedWorkoutsModel savedWorkoutsModel = new SavedWorkoutsModel();
 
-                            else {
-                                View v = layoutInflater.inflate(R.layout.saved_workout_display, null);
-                                final RelativeLayout workoutLoaderRelativeLayout = (RelativeLayout) v.findViewById(R.id.workoutLoaderRelativeLayout);
-                                ImageButton popup = (ImageButton) v.findViewById(R.id.popupMenu);
-                                final TextView table = (TextView) v.findViewById(R.id.workout);
-                                tableName = table;
-                                timeElapsed = (TextView) v.findViewById(R.id.timeCompleted);
+                                if (!workoutName.contains("TimeTable")){
 
-                                //Sets the workout name to the table name
-                                table.setText(workoutName);
+                                    savedWorkoutsModel.setWorkoutName(workoutName);
 
-                                //Whenever a relative layout is clicked, call loadWorkout
-                                workoutLoaderRelativeLayout.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        if (getActivity() != null) {
-                                            onLoadWorkout.loadWorkout(table.getText().toString());
+
+                                    for(DataSnapshot snapshot1 : dataSnapshot.getChildren()){
+                                        String possibleTimeTable = snapshot1.getKey();
+                                        if (possibleTimeTable.equals(savedWorkoutsModel.getWorkoutName() + "TimeTable")) {
+                                            WorkoutTime workoutTime = snapshot1.getValue(WorkoutTime.class);
+                                            savedWorkoutsModel.setCompletedTime(workoutTime.getTime());
                                         }
                                     }
-                                });
 
-                                popup.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        showPopup(view);
-                                    }
-                                });
-
-                                //Relative layout is added to the SavedWorkouts fragment
-                                savedWorkoutContainer.addView(v);
+                                    savedWorkoutsModelList.add(savedWorkoutsModel);
+                                    savedWorkoutsAdapter.notifyDataSetChanged();
+                                }
                             }
                         }
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+                    });
 
     }
 
-
-    //Called when the three dot menu is pressed
-    //Displays the option to delete the workout
-    public void showPopup(View v) {
-        PopupMenu popup = new PopupMenu(getActivity(), v);
-        MenuInflater inflater = popup.getMenuInflater();
-        View view = (View) v.getParent();
-        final TextView workout = (TextView) view.findViewById(R.id.workout);
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+    //  method to initialize firebase
+    private void initFirebase(){
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.delete:
-                        deleteWorkout(item, workout.getText().toString());
-                        return true;
-                    default:
-                        return false;
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+
+
+                } else {
+                    // User is signed out
                 }
+                // ...
             }
-        });
-        inflater.inflate(R.menu.context_menu, popup.getMenu());
-        popup.show();
-    }
+        };
+        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
 
-
-    //Called when delete from the three dot menu is pressed
-    public void deleteWorkout(MenuItem item, String workoutName) {
-        Fragment savedWorkout = new SavedWorkouts();
-        //Deletes the workout and the time table related to it
-        if (item.getItemId() == R.id.delete) {
-            FirebaseDatabase.getInstance().getReference().child("workoutTracker").child("workouts").child(workoutName).removeValue();
-            FirebaseDatabase.getInstance().getReference().child("workoutTracker").child("workouts").child(workoutName + "TimeTable").removeValue();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            if (user.getEmail() != null && user.getEmail().contains(".")) {
+                String validDatabasePath = user.getEmail().replace(".", "?");
+                String ref = validDatabasePath + "WorkoutTracker";
+                myRef = database.getReference(ref);
+            } else if (user.getEmail() != null && !user.getEmail().contains(".")) {
+                myRef = database.getReference(user.getEmail() + "WorkoutTracker");
+            }
         }
-        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        //Updates savedWorkout fragment
-        ft.replace(R.id.content_frame, savedWorkout, "FragmentHome");
-        ft.commit();
     }
+
+    //  method to initialize recyclerview
+    private void initRecyclerView(){
+        onStartDragListener = new OnStartDragListener() {
+            @Override
+            public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                itemTouchHelper.startDrag(viewHolder);
+            }
+        };
+        savedWorkoutsAdapter = new SavedWorkoutsAdapter(savedWorkoutsModelList, activity, this, onStartDragListener);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
+
+
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(savedWorkoutsAdapter);
+        ItemTouchHelper.Callback callback =
+                new SimpleItemTouchHelperCallback(savedWorkoutsAdapter, null);
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+
 
 }

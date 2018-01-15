@@ -12,6 +12,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import static com.example.workouttracker.R.id.minutesTV;
 import static com.example.workouttracker.R.id.secondsTV;
 import static com.example.workouttracker.R.string.sound;
@@ -25,9 +30,7 @@ public class CountdownService extends Service {
     private final static String TAG = "BroadcastService";
 
     public static final String COUNTDOWN_SECONDS = "com.example.workouttracker.countdown_seconds";
-    //public static final String COUNTDOWN_MINUTES = "com.example.workouttracker.countdown_minutes";
     Intent countSec = new Intent(COUNTDOWN_SECONDS);
-    //Intent countMin = new Intent(COUNTDOWN_MINUTES);
 
     CountDownTimer countDownTimer = null;
     int inputtedMinutes;
@@ -41,23 +44,29 @@ public class CountdownService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        //  checks the user settings to see if sound or vibrate is checked
+        //  assigns that boolean to sound and vibrate
+
         v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-        SharedPreferences soundNotification = getApplicationContext().getSharedPreferences("sound", Context.MODE_PRIVATE);
-        SharedPreferences vibrateNotification = getApplicationContext().getSharedPreferences("vibrate", Context.MODE_PRIVATE);
-        sound = soundNotification.getBoolean("soundCheckbox", false);
-        vibrate = vibrateNotification.getBoolean("vibrateCheckbox", false);
+        SharedPreferences restAlert = getApplicationContext().getSharedPreferences("restAlert", Context.MODE_PRIVATE);
+        sound = restAlert.getBoolean("sound", false);
+        vibrate = restAlert.getBoolean("vibrate", false);
+
     }
 
     @Override
     public void onDestroy() {
-
+        super.onDestroy();
         countDownTimer.cancel();
         Log.i(TAG, "Timer cancelled");
-        super.onDestroy();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        //  once service is started, starts a timer
+        //  seconds and minutes are the original values before the timer started
         if(intent != null) {
             int seconds = intent.getIntExtra("seconds", -1);
             int minutes = intent.getIntExtra("minutes", -1);
@@ -73,41 +82,50 @@ public class CountdownService extends Service {
 
     public void timer(int seconds, int minutes, final Intent intent){
         if(seconds != -1) {
+
             min = minutes;
             inputtedMinutes = intent.getIntExtra("minutes", -1);
             inputtedSeconds = intent.getIntExtra("seconds", -1);
+
             countDownTimer = new CountDownTimer(seconds * 1000, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
+                    //  sends the value of the seconds during the countdown to the receiver every tick
                     countSec.putExtra("countdownSeconds", millisUntilFinished);
                     sendBroadcast(countSec);
                 }
 
                 @Override
                 public void onFinish() {
+
+                    //  when timer is finished, and minutes has a value greater than 0
+                    //  decrement value of minutes and set the new value to minuteTV and start new timer
                     if(min > 0){
                         min--;
                         SharedPreferences minPref = getApplicationContext().getSharedPreferences("countdownMin", Context.MODE_PRIVATE);
                         minPref.edit().putInt("minCountdown", min).apply();
-                        //countSec.putExtra("min", inputtedMinutes);
-                        //countSec.putExtra("sec", inputtedSeconds);
+
                         sendBroadcast(countSec);
                         timer(60, min, intent);
                     }
 
+                    //  if value of min = 0, alert user through vibration or sound, depending on settings
+                    //  send value of original min and sec to receiver
+                    //  stop service
                     else{
                         alertRestDone();
+
                         countSec.putExtra("min", inputtedMinutes);
                         countSec.putExtra("sec", inputtedSeconds);
 
                         SharedPreferences minPref = getApplicationContext().getSharedPreferences("min", Context.MODE_PRIVATE);
                         SharedPreferences secPref = getApplicationContext().getSharedPreferences("sec", Context.MODE_PRIVATE);
-                        SharedPreferences timerPref = getApplicationContext().getSharedPreferences("timer", Context.MODE_PRIVATE);
+
                         minPref.edit().putInt("inputtedMin", inputtedMinutes).apply();
                         secPref.edit().putInt("inputtedSec", inputtedSeconds).apply();
-                        timerPref.edit().putBoolean("timerFinished", true).apply();
 
                         sendBroadcast(countSec);
+                        stopService(intent);
                     }
 
                 }
@@ -116,8 +134,8 @@ public class CountdownService extends Service {
         }
     }
 
+    //  method that is responsible for vibrating or decreasing volume halfway for 1 sec then increasing back to normal
     public void alertRestDone(){
-        Log.d("alert", "alert");
         if (vibrate) {
             v.vibrate(1000);
         }

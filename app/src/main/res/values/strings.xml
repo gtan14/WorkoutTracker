@@ -1,15 +1,27 @@
 <resources>
     <string name="app_name">Workout Tracker</string>
     <string name="squat">Squat</string>
+    <string name="maxes">Maxes</string>
+    <string name="conversion">Weight Conversion</string>
+    <string name="no_conversion">None</string>
+    <string name="lbToKg">Lbs to KG</string>
+    <string name="KgToLb">KG to Lbs</string>
+    <string name="rest_alert">Rest Alert</string>
+    <string name="round">Weight Rounding</string>
+    <string name="settings">Settings</string>
     <string name="bench">Bench</string>
+    <string name="addMax">+Add Max</string>
+    <string name="username">Username: </string>
+    <string name="logout">Logout</string>
     <string name="deadlift">Deadlift</string>
     <string name="cj">Clean &amp; Jerk</string>
+    <string name="profile">Profile</string>
     <string name="max">Max</string>
     <string name="snatch">Snatch</string>
     <string name="powerClean">Power Clean</string>
     <string name="roundConvertedPercent">Round converted percent</string>
-    <string name="round2.5">Round to 2.5 multiple</string>
-    <string name="round5">Round to 5 multiple</string>
+    <string name="round2.5">Round to nearest 2.5 multiple</string>
+    <string name="round5">Round to nearest 5 multiple</string>
     <string name="add_exercise">+Add Exercise</string>
     <string name="exercise_hint">Exercise</string>
     <string name="set">Set</string>
@@ -41,6 +53,8 @@
     <string name="cancel">Cancel</string>
     <string name="saveAs">Save</string>
     <string name="delete">Delete</string>
+    <string name="share">Share</string>
+    <string name="deleteAll">Delete all</string>
     <string name="override">Do you want to override this file?</string>
     <item name="row_name" type="id" />
     <string name="title_activity_navigation_drawer">navigationDrawer</string>

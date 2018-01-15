@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/buttonHolderLinearLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top|center"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/addNew"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="@string/add_exercise" />
+
+    <Button
+        android:id="@+id/supersetButton"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:text="@string/add_superset" />
+
+    <Button
+        android:id="@+id/addPyramid"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:text="@string/add_pyramid" />
+
+    <Button
+        android:id="@+id/addRest"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:text="@string/add_rest" />
+
+    <Button
+        android:id="@+id/start_workout"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="@color/start"
+        android:elevation="0dp"
+        android:text="@string/start" />
+
+    <Button
+        android:id="@+id/stop_workout"
+        android:layout_width="167dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="15dp"
+        android:backgroundTint="@color/stop"
+        android:text="@string/stop_workout" />
+
+</LinearLayout>

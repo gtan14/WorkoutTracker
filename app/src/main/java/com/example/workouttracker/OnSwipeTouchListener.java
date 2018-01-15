@@ -1,6 +1,7 @@
 package com.example.workouttracker;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
@@ -15,9 +16,11 @@ import android.widget.LinearLayout;
 public class OnSwipeTouchListener implements OnTouchListener {
 
     private final GestureDetector gestureDetector;
+    private DisplayWorkoutAdapter displayWorkoutAdapter;
 
-    public OnSwipeTouchListener (Context ctx){
+    public OnSwipeTouchListener (Context ctx, DisplayWorkoutAdapter displayWorkoutAdapter){
         gestureDetector = new GestureDetector(ctx, new GestureListener());
+        this.displayWorkoutAdapter = displayWorkoutAdapter;
     }
 
     @Override
@@ -63,9 +66,15 @@ public class OnSwipeTouchListener implements OnTouchListener {
     }
 
     public void onSwipeRight() {
+        if(displayWorkoutAdapter.startClicked) {
+            displayWorkoutAdapter.nextSet();
+        }
     }
 
     public void onSwipeLeft() {
+        if(displayWorkoutAdapter.startClicked) {
+            displayWorkoutAdapter.nextSet();
+        }
     }
 
     public void onSwipeTop() {

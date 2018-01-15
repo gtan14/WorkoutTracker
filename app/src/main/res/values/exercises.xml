@@ -16,16 +16,18 @@
         <item>Facepulls</item>
         <item>Cable Rows</item>
         <item>Bent Over Rows</item>
-        <item>Dumbbell Rows</item>
+        <item>DB Rows</item>
         <item>Pullups</item>
         <item>Pushups</item>
         <item>OHP</item>
-        <item>Seated Dumbbell Press</item>
+        <item>Incline DB Press</item>
+        <item>Flat DB Press</item>
+        <item>Seated DB Press</item>
         <item>Side Lateral Raise</item>
         <item>Front Lateral Raise</item>
         <item>Rear Delt Fly</item>
         <item>Barbell Shrugs</item>
-        <item>Dumbbell Shrugs</item>
+        <item>DB Shrugs</item>
         <item>Arnold Press</item>
         <item>Stiff Legged Deadlifts</item>
         <item>Box Squat</item>
@@ -45,7 +47,7 @@
         <item>Deficit Deadlifts</item>
         <item>Paused Squats</item>
         <item>Barbell Curl</item>
-        <item>DB Supinated Curl</item>
+        <item>DB Curl</item>
         <item>RDL</item>
         <item>Lunges</item>
         <item>GHR</item>

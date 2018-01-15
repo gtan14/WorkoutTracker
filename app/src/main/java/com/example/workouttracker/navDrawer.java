@@ -1,6 +1,7 @@
 package com.example.workouttracker;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.internal.NavigationMenuView;
@@ -22,8 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 
-import com.facebook.stetho.Stetho;
-
 import static android.R.attr.fragment;
 
 public class navDrawer extends AppCompatActivity
@@ -38,7 +37,6 @@ public class navDrawer extends AppCompatActivity
         setContentView(R.layout.app_bar_nav_drawer);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Stetho.initializeWithDefaults(this);
 
         /*DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -83,18 +81,7 @@ public class navDrawer extends AppCompatActivity
     @Override
     public boolean onPrepareOptionsMenu(Menu menu){
         super.onPrepareOptionsMenu(menu);
-        SharedPreferences soundNotification = getSharedPreferences("sound", Context.MODE_PRIVATE);
-        SharedPreferences vibrateNotification = getSharedPreferences("vibrate", Context.MODE_PRIVATE);
-        //SharedPreferences round2 = getSharedPreferences("round2_5", Context.MODE_PRIVATE);
-        //SharedPreferences round5 = getSharedPreferences("round5", Context.MODE_PRIVATE);
-        //boolean roundPercentageToNearest2 = round2.getBoolean("round2_5RadioButton", false);
-        //boolean roundPercentageToNearest5 = round5.getBoolean("round5RadioButton", true);
-        boolean sound = soundNotification.getBoolean("soundCheckbox", false);
-        boolean vibrate = vibrateNotification.getBoolean("vibrateCheckbox", false);
-        //menu.findItem(R.id.round2_5).setChecked(roundPercentageToNearest2);
-        //menu.findItem(R.id.round5).setChecked(roundPercentageToNearest5);
-        menu.findItem(R.id.soundNotification).setChecked(sound);
-        menu.findItem(R.id.vibrateNotification).setChecked(vibrate);
+
         return true;
     }
 
@@ -113,38 +100,11 @@ public class navDrawer extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.soundNotification) {
-                item.setChecked(!item.isChecked());
-                SharedPreferences soundSetting = getSharedPreferences("sound", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = soundSetting.edit();
-                editor.putBoolean("soundCheckbox", item.isChecked());
-                editor.apply();
-                return true;
-        }
-        if (id == R.id.vibrateNotification){
-            item.setChecked(!item.isChecked());
-            SharedPreferences soundSetting = getSharedPreferences("vibrate", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = soundSetting.edit();
-            editor.putBoolean("vibrateCheckbox", item.isChecked());
-            editor.apply();
+        if (id == R.id.settings) {
+            Intent intent = new Intent(this, Settings.class);
+            startActivity(intent);
             return true;
         }
-        /*if (id == R.id.round2_5){
-            item.setChecked(!item.isChecked());
-            SharedPreferences round2_5 = getSharedPreferences("round2_5", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = round2_5.edit();
-            editor.putBoolean("round2_5RadioButton", item.isChecked());
-            editor.apply();
-            return true;
-        }
-        if (id == R.id.round5){
-            item.setChecked(!item.isChecked());
-            SharedPreferences round5 = getSharedPreferences("round5", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = round5.edit();
-            editor.putBoolean("round5RadioButton", item.isChecked());
-            editor.apply();
-            return true;
-        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -210,9 +170,9 @@ public class navDrawer extends AppCompatActivity
             }
 
             else if(tab.getPosition() == 2){
-                Fragment max = new Max();
+                Fragment profile = new Profile();
                 FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.content_frame, max, "FragmentMax");
+                ft.replace(R.id.content_frame, profile, "FragmentProfile");
                 ft.commit();
             }
 
