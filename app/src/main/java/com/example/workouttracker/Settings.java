@@ -7,15 +7,21 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 import android.widget.Toolbar;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Created by Gerald on 1/4/2018.
@@ -28,6 +34,22 @@ public class Settings extends AppCompatActivity {
     private android.support.v7.widget.Toolbar toolbar;
     private RadioButton radioButton2_5, radioButton5, lbToKGRadioBtn, kGToLbRadioBtn, noConversionRadioBtn;
     private Button logoutBtn;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseAuth mAuth;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +67,17 @@ public class Settings extends AppCompatActivity {
         kGToLbRadioBtn = (RadioButton) findViewById(R.id.KGToLbRadioBtn);
         noConversionRadioBtn = (RadioButton) findViewById(R.id.noConversionRadioBtn);
         toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.settingsToolbar);
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user == null) {
+                    Toast.makeText(Settings.this, "Sign out successful", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
 
         //  sets title
         toolbar.setTitleTextColor(Color.WHITE);

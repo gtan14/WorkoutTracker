@@ -23,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,10 +32,12 @@ import android.widget.Toast;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +52,8 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
     private MainActivity mainActivity;
     private SavedWorkouts sw;
     private final OnStartDragListener mDragStartListener;
+    private List<RowType> rowType;
+    private ShareWorkout shareWorkout;
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
         public TextView workoutName;
@@ -268,7 +273,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                         deleteAllWorkouts(item);
                         return true;
                     case R.id.shareWorkout:
-                        shareWorkout();
+                        shareWorkout(workout.getText().toString());
                         return true;
                     default:
                         return false;
@@ -279,8 +284,107 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
         popup.show();
     }
 
-    public void shareWorkout(){
+    //  called when share is clicked from the overflow menu
+    //  creates an alert dialog, asking for the receiver username
+    //  if receiver username is same as current user username, display toast error
+    //  if receiver username does not exist, display toast error
+    //  if receiver username does exist, and no error, call retrieveWorkout
+    public void shareWorkout(final String workout){
+        if(sw.getContext() != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(sw.getContext());
+            builder.setTitle("Share");
 
+            final EditText input = new EditText(sw.getContext());
+            builder.setView(input);
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+            builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    final String receiver = input.getText().toString();
+                    final DatabaseReference reference = sw.database.getReference("token");
+
+                    //  checks to see if user exists
+                    reference.child(receiver).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            if(sw.username.equals(input.getText().toString())){
+                                Toast.makeText(sw.getContext(), "Can't send workout to self", Toast.LENGTH_LONG).show();
+                            }
+
+                            else if(dataSnapshot.exists() && !sw.username.equals(input.getText().toString())){
+                                String receiverToken = (String) dataSnapshot.getValue();
+                                retrieveWorkout(receiverToken, workout, receiver);
+                            }
+
+                            else{
+                                Toast.makeText(sw.getContext(), "User does not exist", Toast.LENGTH_LONG).show();
+                            }
+
+                            reference.child(receiver).removeEventListener(this);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            });
+            builder.show();
+        }
+    }
+
+    //  called once a user sends a workout to another user
+    //  creates a temp node with the receiver's token id, the workout name being sent, the sender, and the actual workout
+    //  name of the node is under sharedWorkout/{senderToReceiver}
+    private void retrieveWorkout(String receiverToken, final String workout, final String receiverName){
+        rowType = new ArrayList<>();
+        shareWorkout = new ShareWorkout();
+        shareWorkout.setToken(receiverToken);
+        shareWorkout.setWorkoutName(workout);
+        shareWorkout.setId(sw.username);
+        sw.myRef.child("workouts").child(workout).child("list").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot s : dataSnapshot.getChildren()) {
+                    String viewType = (String) s.child("view").getValue();
+                    if (viewType != null) {
+                        if (viewType.equals("Exercise row")) {
+                            ExerciseModel exerciseModel = s.getValue(ExerciseModel.class);
+                            rowType.add(exerciseModel);
+                        } else if (viewType.equals("Rest row")) {
+                            RestRowModel restRowModel = s.getValue(RestRowModel.class);
+                            rowType.add(restRowModel);
+                        } else if (viewType.equals("Superset container")) {
+                            SupersetRowModel supersetRowModel = s.getValue(SupersetRowModel.class);
+                            rowType.add(supersetRowModel);
+                        } else if (viewType.equals("Pyramidset container")) {
+                            PyramidsetRowModel pyramidsetRowModel = s.getValue(PyramidsetRowModel.class);
+                            rowType.add(pyramidsetRowModel);
+                        }
+                    }
+                }
+                sw.myRef.child("workouts").child(workout).child("list").removeEventListener(this);
+                shareWorkout.setWorkout(rowType);
+                //  creates a node that specifies the sender and receiver
+                //  under that node, another node is created specifying the workout name
+                //  this is where the workout is temporarily stored for the receiver, until the receiver declines or accepts
+                //  username.replace is used just in case the username contains '.'. This will crash the app since Firebase does not accept '.' in a node name
+                String childName = sw.username.replace(".", ",") + "To" + receiverName;
+                sw.database.getReference("shareWorkout").child(childName).child(workout).setValue(shareWorkout);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     //  Called when delete all from the overflow menu is pressed
@@ -299,7 +403,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        //Deletes the workout and the time table related to it
+                        //  Deletes the workout and the time table related to it
                         if (item.getItemId() == R.id.deleteAll) {
                             mainActivity.myRef.child("workouts").removeValue();
                             clear();

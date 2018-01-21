@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,9 +20,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserInfo;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * Created by Gerald on 10/29/2017.
@@ -32,20 +36,18 @@ public class SignupActivity extends AppCompatActivity {
     private EditText email;
     private EditText password;
     private EditText reenterPass;
-    private EditText firstName;
-    private EditText lastName;
+    private EditText username;
     private Button cancel;
     private Button signup;
     private TextInputLayout emailTextInputLayout;
     private TextInputLayout passwordTextInputLayout;
     private TextInputLayout reenterPassTextInputLayout;
-    private TextInputLayout firstNameTextInputLayout;
-    private TextInputLayout lastNameTextInputLayout;
+    private TextInputLayout usernameTextInputLayout;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private final String TAG = "FIREBASE";
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("users");
+    private boolean proceedToSignup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +58,7 @@ public class SignupActivity extends AppCompatActivity {
         email = findViewById(R.id.email_sign_up);
         password = findViewById(R.id.password_sign_up);
         reenterPass = findViewById(R.id.reenter_pass_sign_up);
-        firstName = findViewById(R.id.first_name_sign_up);
-        lastName = findViewById(R.id.last_name_sign_up);
+        username = findViewById(R.id.username_sign_up);
 
         cancel = findViewById(R.id.cancel_signup_button);
         signup = findViewById(R.id.sign_up_button);
@@ -65,25 +66,12 @@ public class SignupActivity extends AppCompatActivity {
         emailTextInputLayout = findViewById(R.id.email_text_input_layout);
         passwordTextInputLayout = findViewById(R.id.password_text_input_layout);
         reenterPassTextInputLayout = findViewById(R.id.reenter_pass_text_input_layout);
-        firstNameTextInputLayout = findViewById(R.id.first_name_text_input_layout);
-        lastNameTextInputLayout = findViewById(R.id.last_name_text_input_layout);
+        usernameTextInputLayout = findViewById(R.id.username_text_input_layout);
+
+        textListeners(emailTextInputLayout, passwordTextInputLayout, reenterPassTextInputLayout, usernameTextInputLayout);
 
 
         mAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                }
-                // ...
-            }
-        };
 
     }
 
@@ -104,12 +92,13 @@ public class SignupActivity extends AppCompatActivity {
         String emailString = email.getText().toString();
         String passwordString = password.getText().toString();
         String reenterPassString = reenterPass.getText().toString();
-        String firstNameString = firstName.getText().toString();
-        String lastNameString = lastName.getText().toString();
-        boolean proceedToSignup = true;
+        final String usernameString = username.getText().toString();
+        proceedToSignup = true;
 
         /*
             Error will show if any of the text fields are empty
+            Error will show if password is less than 6 chars
+
         */
 
         if(emailString.isEmpty()){
@@ -122,20 +111,48 @@ public class SignupActivity extends AppCompatActivity {
             proceedToSignup = false;
         }
 
+        else if(passwordString.length() < 6){
+            passwordTextInputLayout.setError("Must be at least 6 characters");
+        }
+
         if(reenterPassString.isEmpty()){
             reenterPassTextInputLayout.setError("Re-enter password");
             proceedToSignup = false;
         }
 
-        if(firstNameString.isEmpty()){
-            firstNameTextInputLayout.setError("Enter first name");
+        if(usernameString.isEmpty()){
+            usernameTextInputLayout.setError("Enter username");
             proceedToSignup = false;
         }
 
-        if(lastNameString.isEmpty()){
-            lastNameTextInputLayout.setError("Enter last name");
-            proceedToSignup = false;
+        else{
+
+            //  checks to see if there are any users with the same username that this user is signing up for
+            //  if there is, prevent from successfully signing up, and show error
+            myRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+                        if(snapshot.getKey().equals(usernameString)){
+                            usernameTextInputLayout.setError("Username taken");
+                            proceedToSignup = false;
+                        }
+                    }
+                    myRef.removeEventListener(this);
+                    proceedSignup(usernameString);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
+
+    }
+
+    //  method that successfully signs up a user
+    private void proceedSignup(final String usernameString){
 
         if(proceedToSignup){
             mAuth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
@@ -156,43 +173,78 @@ public class SignupActivity extends AppCompatActivity {
                                 }
                             }
                             else{
-                                createNewUser(email.getText().toString(), firstName.getText().toString(), lastName.getText().toString());
-                                Toast.makeText(SignupActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
-                                startActivity(intent);
+
+                                //  create a user if sign up was successful
+                                //  user will have a username linked to that account
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(usernameString)
+                                        .build();
+
+                                if(user != null) {
+                                    user.updateProfile(profileUpdates)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        createNewUser(usernameString);
+                                                        Toast.makeText(SignupActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
+                                                        Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                                                        startActivity(intent);
+                                                    }
+                                                }
+                                            });
+                                }
                             }
 
-                            // ...
                         }
                     });
         }
     }
 
     //  creates a new user in firebase with attr: email, first name, and last name
-    private void createNewUser(String email, String firstName, String lastName) {
+    private void createNewUser(String username) {
 
         User userFromRegistration = new User();
 
-        userFromRegistration.setEmail(email);
-        userFromRegistration.setFirstName(firstName);
-        userFromRegistration.setLastName(lastName);
+        //userFromRegistration.setEmail(email);
+        userFromRegistration.setUsername(username);
 
-        String emailString = userFromRegistration.getEmail().replace(".", ",");
+        myRef.child(username).setValue(userFromRegistration);
+    }
 
-        myRef.child(emailString).setValue(userFromRegistration);
+    //  text watcher that removes the errors from the edit text once text is changed
+    private void textListeners(TextInputLayout...textInputLayouts){
+        for(final TextInputLayout layout : textInputLayouts){
+            if(layout.getEditText() != null) {
+                layout.getEditText().addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        layout.setError("");
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+
+                    }
+                });
+            }
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
     }
 }

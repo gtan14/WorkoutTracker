@@ -45,10 +45,10 @@ public class SavedWorkouts extends Fragment{
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private MainActivity activity;
     private List<SavedWorkoutsModel> savedWorkoutsModelList = new ArrayList<>();
     public RecyclerView recyclerView;
+    public String username;
     private SavedWorkoutsAdapter savedWorkoutsAdapter;
     private OnStartDragListener onStartDragListener;
     public ItemTouchHelper itemTouchHelper;
@@ -75,9 +75,6 @@ public class SavedWorkouts extends Fragment{
     @Override
     public void onStop(){
         super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
     }
 
     @Override
@@ -158,29 +155,12 @@ public class SavedWorkouts extends Fragment{
     //  method to initialize firebase
     private void initFirebase(){
         mAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-
-
-                } else {
-                    // User is signed out
-                }
-                // ...
-            }
-        };
-        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            if (user.getEmail() != null && user.getEmail().contains(".")) {
-                String validDatabasePath = user.getEmail().replace(".", "?");
-                String ref = validDatabasePath + "WorkoutTracker";
-                myRef = database.getReference(ref);
-            } else if (user.getEmail() != null && !user.getEmail().contains(".")) {
-                myRef = database.getReference(user.getEmail() + "WorkoutTracker");
+            if(user.getDisplayName() != null) {
+                myRef = database.getReference(user.getDisplayName() + "WorkoutTracker");
+                username = user.getDisplayName();
             }
         }
     }

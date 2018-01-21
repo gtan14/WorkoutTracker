@@ -53,11 +53,8 @@ public class Profile extends Fragment {
     private MaxAdapter maxAdapter;
     public ArrayList<maxModel> maxModelArrayList;
     private LinearLayoutManager layoutManager;
-    private DatabaseReference name;
     private TextView username;
     private FrameLayout frameLayout;
-    private String nameRetrieved;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     //private FloatingActionsMenu floatingActionsMenu;
     private FloatingActionButton addMax;
     //private FloatingActionButton addFriend;
@@ -84,9 +81,6 @@ public class Profile extends Fragment {
     @Override
     public void onStop(){
         super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
     }
 
     @Override
@@ -105,7 +99,7 @@ public class Profile extends Fragment {
         addMax = (FloatingActionButton) v.findViewById(R.id.addMaxFAB);
         //addFriend = (FloatingActionButton) v.findViewById(R.id.addFriendFAB);
         frameLayout = (FrameLayout) v.findViewById(R.id.profileFrameLayout);
-        //username = (TextView) v.findViewById(R.id.username);
+        username = (TextView) v.findViewById(R.id.username);
         mAuth = FirebaseAuth.getInstance();
         layoutInflater = getLayoutInflater();
 
@@ -125,7 +119,6 @@ public class Profile extends Fragment {
 
         //  initialize Firebase and set the username for the user to the text view
         initializeFirebase();
-        //setName();
         activity.setTitle("Profile");
 
         maxModelArrayList = new ArrayList<>();
@@ -209,54 +202,17 @@ public class Profile extends Fragment {
 
     //  initialize Firebase by getting a reference to users data path
     private void initializeFirebase(){
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-
-                } else {
-                    // User is signed out
-                }
-                // ...
-            }
-        };
-        mAuth.addAuthStateListener(mAuthListener);
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            if (user.getEmail() != null && user.getEmail().contains(".")) {
-                String validDatabasePath = user.getEmail().replace(".", "?");
-                String namePath = user.getEmail().replace(".", ",");
-                myRef = database.getReference(validDatabasePath + "WorkoutTracker");
-                name = database.getReference("users").child(namePath);
-            } else if (user.getEmail() != null && !user.getEmail().contains(".")) {
-                myRef = database.getReference(user.getEmail() + "WorkoutTracker");
+            if(user.getDisplayName() != null) {
+                myRef = database.getReference(user.getDisplayName() + "WorkoutTracker");
+                String name = "Username: " + user.getDisplayName();
+                username.setText(name);
             }
         }
     }
 
-    /*
-    private void setName() {
-        if (name != null) {
-            name
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.exists()) {
-                                User user = dataSnapshot.getValue(User.class);
-                                nameRetrieved = user.getFirstName();
-                            }
-                            username.setText("Username: " + nameRetrieved);
-                            //myRef.child("max").removeEventListener(this);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                        }
-                    });
-        }
-    }*/
 
     //  method to check if a keyboard is shown or not
     public static float dpToPx(Context context, float valueInDp) {

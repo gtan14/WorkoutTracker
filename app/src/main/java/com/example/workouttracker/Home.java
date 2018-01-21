@@ -112,7 +112,6 @@ public class Home extends Fragment {
     private FirebaseAuth mAuth;
     private boolean FABClicked;
     private FrameLayout frameLayout;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private final String TAG = "FIREBASE";
     public LinearLayoutManager layoutManager;
     private String loadedTableName;
@@ -143,9 +142,6 @@ public class Home extends Fragment {
     @Override
     public void onStop(){
         super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
     }
 
     @Override
@@ -408,30 +404,11 @@ public class Home extends Fragment {
     private void firebaseInit(){
         FirebaseUser user = mAuth.getCurrentUser();
         if(user != null){
-            if(user.getEmail() != null && user.getEmail().contains(".")) {
-                String validDatabasePath = user.getEmail().replace(".", "?");
-                myRef = database.getReference(validDatabasePath + "WorkoutTracker");
-            }
-
-            else if(user.getEmail() != null && !user.getEmail().contains(".")){
-                myRef = database.getReference(user.getEmail() + "WorkoutTracker");
+            if(user.getDisplayName() != null) {
+                myRef = database.getReference(user.getDisplayName() + "WorkoutTracker");
             }
         }
 
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-
-                } else {
-                    // User is signed out
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                }
-                // ...
-            }
-        };
-        mAuth.addAuthStateListener(mAuthListener);
     }
 
     //  sets up the recyclerview
