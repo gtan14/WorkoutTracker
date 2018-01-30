@@ -39,6 +39,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Gerald on 1/2/2018.
@@ -51,7 +52,7 @@ public class Profile extends Fragment {
     DatabaseReference myRef;
     private FirebaseAuth mAuth;
     private MaxAdapter maxAdapter;
-    public ArrayList<maxModel> maxModelArrayList;
+    public List<maxModel> maxModelArrayList;
     private LinearLayoutManager layoutManager;
     private TextView username;
     private FrameLayout frameLayout;

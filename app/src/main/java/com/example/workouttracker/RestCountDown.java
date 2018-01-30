@@ -85,11 +85,11 @@ public class RestCountDown {
         int min = Integer.valueOf(displayWorkoutAdapter.minuteTV.getText().toString());
         int sec = Integer.valueOf(displayWorkoutAdapter.secondsTV.getText().toString());
         if (!displayWorkoutAdapter.startTimer) {
+            displayWorkoutAdapter.startTimer = true;
             home.serviceIntent.putExtra("seconds", sec);
             home.serviceIntent.putExtra("minutes", min);
             home.activity.registerReceiver(secondReceiver, new IntentFilter(COUNTDOWN_SECONDS));
             home.activity.startService(home.serviceIntent);
-            displayWorkoutAdapter.startTimer = true;
         }
     }
 
@@ -143,6 +143,7 @@ public class RestCountDown {
 
                 //  if timer is started for just rest row, delete the shared prefs for the original min and sec, remove rest, and unregister receiver
                 if (list.get(list.size() - 1).getClass() == RestRowModel.class) {
+                    displayWorkoutAdapter.startTimer = false;
                     minPref.edit().clear().apply();
                     secPref.edit().clear().apply();
                     list.remove(list.size() - 1);
@@ -237,7 +238,6 @@ public class RestCountDown {
 
                     //  removes the timer
                     if (removeView) {
-                        Log.d("remove", "remove");
                         RestRowModel restRowModel = supersetRowModel.getRestRowModel();
                         if(restRowModel != null){
                             supersetRowModel.setNumberOfChildren(layout.getChildCount() - 1);

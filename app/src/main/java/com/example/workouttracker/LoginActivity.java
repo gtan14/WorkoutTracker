@@ -41,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout passwordTextInputLayout;
     private FirebaseAuth mAuth;
     private final String TAG = "FIREBASE";
+    private Bundle workoutReceivedBundle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,11 @@ public class LoginActivity extends AppCompatActivity {
         boolean keepLoggedIn = sharedPreferences.getBoolean("signIn", false);
 
         mAuth = FirebaseAuth.getInstance();
+
+        /*Bundle bundle = getIntent().getExtras();
+        if(bundle != null){
+            workoutReceivedBundle = bundle;
+        }*/
 
         //  if keep signed in checkbox is checked, auto sign in
         if(keepLoggedIn){
@@ -88,12 +94,12 @@ public class LoginActivity extends AppCompatActivity {
 
         boolean proceedWithSignIn = true;
         if(email.getText().toString().length() == 0){
-            emailTextInputLayout.setError("Please enter email");
+            emailTextInputLayout.setError("Enter email");
             proceedWithSignIn = false;
         }
 
         if(password.getText().toString().length() == 0){
-            passwordTextInputLayout.setError("Please enter password");
+            passwordTextInputLayout.setError("Enter password");
             proceedWithSignIn = false;
         }
 
@@ -151,6 +157,9 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, "Invalid email/password", Toast.LENGTH_SHORT).show();
                             } else {
                                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                if(workoutReceivedBundle != null) {
+                                    intent.putExtra("workoutReceivedBundle", workoutReceivedBundle);
+                                }
                                 startActivity(intent);
                             }
 

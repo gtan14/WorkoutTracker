@@ -22,11 +22,13 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -47,6 +49,7 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
     DatabaseReference myRef;
     private FirebaseAuth mAuth;
     private String username;
+    private boolean receiverRegisered;
 
 
     //  Method that displays the home fragment when a workout is loaded
@@ -60,14 +63,41 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
     }
 
     @Override
+    protected void onResume(){
+        super.onResume();
+
+        //  if receiver is not registered yet, register it
+        //  this prevents 2 alert dialogs from appearing if a workout is sent
+        if(!receiverRegisered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), new IntentFilter("workoutReceived"));
+        }
+
+        //  gets the shared pref that is being used to store the sender id and workout name when a user sends a workout
+        SharedPreferences sharedPreferences = getSharedPreferences("workoutReceived", Context.MODE_PRIVATE);
+        String senderId = sharedPreferences.getString("senderId", "");
+        String workoutName = sharedPreferences.getString("workoutName", "");
+        if(!senderId.isEmpty() && !workoutName.isEmpty()){
+            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+            Intent intent = new Intent("workoutReceived");
+            intent.putExtra("sender", senderId);
+            intent.putExtra("workoutName", workoutName);
+
+            //  Sends broadcast to MainActivity with the sender's username
+            broadcastManager.sendBroadcast(intent);
+        }
+    }
+
+    @Override
     protected void onStart(){
         super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), new IntentFilter("workoutReceived"));
     }
 
     @Override
     protected void onStop(){
         super.onStop();
+
+        //  flag that shows if receiver is registered or not
+        receiverRegisered = false;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
     }
 
@@ -79,6 +109,11 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
             if(intent != null){
                 final String sender = intent.getStringExtra("sender");
                 final String workoutName = intent.getStringExtra("workoutName");
+
+                //  clears the shared pref that is used to store the sender id and workout name
+                //  necessary so that alert dialog does not keep showing up saying that a workout has been sent
+                SharedPreferences sharedPreferences = getSharedPreferences("workoutReceived", Context.MODE_PRIVATE);
+                sharedPreferences.edit().clear().apply();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
@@ -108,6 +143,8 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), new IntentFilter("workoutReceived"));
+        receiverRegisered = true;
 
         database = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -171,85 +208,91 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
     //  if it doesn't exist, workout is transferred and placed into the node with original workout name
     //  if the user declines, the workout in the temp node is deleted
     private void deleteTempSentWorkoutNode(String sender, String receiver, String workoutName, boolean accept){
-        String childName = sender + "To" + receiver;
-        final DatabaseReference fromPath = database.getReference("shareWorkout").child(childName).child(workoutName);
-        final DatabaseReference toPath = myRef.child("workouts").child(workoutName).child("list");
-        final DatabaseReference possibleExistingWorkout = myRef.child("workouts").child(workoutName);
 
-        if(accept) {
+        //  checks to see if the sender is null or not
+        //  having a null sender crashed the app, so a check is necessary to prevent crashes from this
+        if(sender != null) {
 
-            possibleExistingWorkout.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    possibleExistingWorkout.removeEventListener(this);
+            String childName = sender + "To" + receiver;
 
-                    //  if workout name already exists, ask user for new name
-                    if(dataSnapshot.exists()){
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        final EditText editText = new EditText(MainActivity.this);
-                        builder.setMessage("Workout name already exists. Create new name");
-                        builder.setView(editText);
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        });
+            final DatabaseReference fromPath = database.getReference("shareWorkout").child(childName).child(workoutName);
+            final DatabaseReference toPath = myRef.child("workouts").child(workoutName).child("list");
+            final DatabaseReference possibleExistingWorkout = myRef.child("workouts").child(workoutName);
 
-                        //  once user presses ok on new name, it is checked to see if it exists already
-                        //  if not, the workout from the temp node is transferred to a new node with the new name
-                        //  setOnShowListener is used to prevent the dialogInterface from dismissing if workout name shows as exists after user clicks ok
-                        builder.setPositiveButton("OK", null);
-                        final AlertDialog alertDialog = builder.create();
-                        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                            @Override
-                            public void onShow(final DialogInterface dialogInterface) {
-                                Button positive = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                                positive.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        myRef.child("workouts").child(editText.getText().toString()).addValueEventListener(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                myRef.child("workouts").child(editText.getText().toString()).removeEventListener(this);
-                                                if(dataSnapshot.exists()){
-                                                    Toast.makeText(MainActivity.this, "Name exists", Toast.LENGTH_LONG).show();
+            if (accept) {
+
+                possibleExistingWorkout.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        possibleExistingWorkout.removeEventListener(this);
+
+                        //  if workout name already exists, ask user for new name
+                        if (dataSnapshot.exists()) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            final EditText editText = new EditText(MainActivity.this);
+                            builder.setMessage("Workout name already exists. Create new name");
+                            builder.setView(editText);
+                            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                }
+                            });
+
+                            //  once user presses ok on new name, it is checked to see if it exists already
+                            //  if not, the workout from the temp node is transferred to a new node with the new name
+                            //  setOnShowListener is used to prevent the dialogInterface from dismissing if workout name shows as exists after user clicks ok
+                            builder.setPositiveButton("OK", null);
+                            final AlertDialog alertDialog = builder.create();
+                            alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                                @Override
+                                public void onShow(final DialogInterface dialogInterface) {
+                                    Button positive = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                                    positive.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            myRef.child("workouts").child(editText.getText().toString()).addValueEventListener(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                                    myRef.child("workouts").child(editText.getText().toString()).removeEventListener(this);
+                                                    if (dataSnapshot.exists()) {
+                                                        Toast.makeText(MainActivity.this, "Name exists", Toast.LENGTH_LONG).show();
+                                                    } else {
+                                                        dialogInterface.dismiss();
+                                                        DatabaseReference newPath = myRef.child("workouts").child(editText.getText().toString()).child("list");
+                                                        transferWorkoutFromTempNode(fromPath, newPath);
+                                                    }
                                                 }
-                                                else{
-                                                    dialogInterface.dismiss();
-                                                    DatabaseReference newPath = myRef.child("workouts").child(editText.getText().toString()).child("list");
-                                                    transferWorkoutFromTempNode(fromPath, newPath);
+
+                                                @Override
+                                                public void onCancelled(DatabaseError databaseError) {
+
                                                 }
-                                            }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                            alertDialog.show();
 
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                        alertDialog.show();
-
+                        } else {
+                            transferWorkoutFromTempNode(fromPath, toPath);
+                        }
                     }
 
-                    else{
-                        transferWorkoutFromTempNode(fromPath, toPath);
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
                     }
-                }
+                });
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-
+            } else {
+                fromPath.removeValue();
+            }
         }
 
         else{
-            fromPath.removeValue();
+            Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
         }
 
     }

@@ -207,7 +207,9 @@ public class Home extends Fragment {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()){
                         activity.setTitle(autoPauseTableName);
+                        int sizeOfList = rowTypeList.size();
                         rowTypeList.clear();
+                        displayWorkoutAdapter.notifyItemRangeRemoved(0, sizeOfList);
                         titleSet = true;
                         displayWorkoutAdapter.setDataForLoadedWorkout(autoPauseTableName, displayWorkoutAdapter, false);
                     }
@@ -344,7 +346,7 @@ public class Home extends Fragment {
             titleSet = false;
             ButtonsHolder buttonsHolder = new ButtonsHolder();
             rowTypeList.add(buttonsHolder);
-            displayWorkoutAdapter.notifyDataSetChanged();
+            displayWorkoutAdapter.notifyItemInserted(0);
         }
 
 

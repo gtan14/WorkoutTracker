@@ -37,19 +37,22 @@ import java.util.List;
 
 public class MaxAdapter extends RecyclerView.Adapter<MaxAdapter.MaxViewHolder> implements ItemTouchHelperAdapter{
 
-    private List<maxModel> maxModelList;
+    public List<maxModel> maxModelList;
     private Profile profile;
+    private boolean updateTextWatcher;
 
     public class MaxViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
         public EditText max;
         public AutoCompleteTextView exercise;
+        public MaxRowTextWatcher maxRowTextWatcher;
 
-        public MaxViewHolder(View view){
+        public MaxViewHolder(View view, MaxAdapter maxAdapter){
             super(view);
 
             exercise = view.findViewById(R.id.exerciseMaxEditText);
             max = view.findViewById(R.id.maxForExEditText);
 
+            maxRowTextWatcher = new MaxRowTextWatcher(maxAdapter, exercise, max);
         }
 
         @Override
@@ -77,9 +80,11 @@ public class MaxAdapter extends RecyclerView.Adapter<MaxAdapter.MaxViewHolder> i
         //  moves data from max node to a temp node
         moveData(profile.myRef.child("max").child(String.format("%s", position)), profile.myRef.child("maxTempDelete").child(tempKey));
 
+
         //  removes corresponding viewholder from adapter, and updates existing viewholders with new position for text watcher
         maxModelList.remove(position);
         notifyItemRemoved(position);
+        //notifyItemRangeChanged(0, getItemCount());
         updatePosition();
 
         //  create snackbar, that acts as an undo action
@@ -90,6 +95,7 @@ public class MaxAdapter extends RecyclerView.Adapter<MaxAdapter.MaxViewHolder> i
                 .setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        updateTextWatcher = true;
                         maxModelList.add(position, maxModel);
                         notifyItemInserted(position);
                         moveData(profile.myRef.child("maxTempDelete").child(tempKey), profile.myRef.child("max").child(String.format("%s", position)));
@@ -137,7 +143,7 @@ public class MaxAdapter extends RecyclerView.Adapter<MaxAdapter.MaxViewHolder> i
     @Override
     public MaxAdapter.MaxViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.max, parent, false);
-        return new MaxAdapter.MaxViewHolder(itemView);
+        return new MaxAdapter.MaxViewHolder(itemView, this);
     }
 
     @Override
@@ -145,15 +151,22 @@ public class MaxAdapter extends RecyclerView.Adapter<MaxAdapter.MaxViewHolder> i
 
         int pos = holder.getAdapterPosition();
 
+
+        //MaxRowTextWatcher maxRowTextWatcher = new MaxRowTextWatcher(this, holder.exercise, holder.max);
+        holder.maxRowTextWatcher.updatePosition(pos);
+
+
         maxModel maxModel = maxModelList.get(pos);
         holder.exercise.setText(maxModel.getExercise());
         holder.max.setText(maxModel.getMax());
 
-        //  initializes and sets text watcher to exercise and max
-        //  this is responsible for setting the correct data for auto save
-        MaxRowTextWatcher maxRowTextWatcher = new MaxRowTextWatcher(profile, holder.exercise, holder.max);
-        updatePosition(pos, maxRowTextWatcher);
-        (maxModelList.get(pos)).setMaxRowTextWatcher(maxRowTextWatcher);
+        (maxModelList.get(pos)).setMaxRowTextWatcher(holder.maxRowTextWatcher);
+
+
+        if(updateTextWatcher){
+            updatePosition();
+            updateTextWatcher = false;
+        }
 
         //  displays auto complete for exercises
         if(profile.getContext() != null) {

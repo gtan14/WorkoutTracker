@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -190,11 +193,12 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position){
-        SavedWorkoutsModel savedWorkoutsModel = savedWorkoutsModelList.get(position);
+        final int pos = holder.getAdapterPosition();
+        SavedWorkoutsModel savedWorkoutsModel = savedWorkoutsModelList.get(pos);
         holder.workoutName.setText(savedWorkoutsModel.getWorkoutName());
         holder.completedTime.setText(savedWorkoutsModel.getCompletedTime());
 
-        sw.myRef.child("workouts").child(holder.workoutName.getText().toString()).child("orderNumber").setValue(position);
+        sw.myRef.child("workouts").child(holder.workoutName.getText().toString()).child("orderNumber").setValue(pos);
 
         //  if workout is clicked, and a workout is not in progress, load that corresponding workout
         //  if workout is in progress, display toast
@@ -211,7 +215,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                                     }
 
                                     else{
-                                        Toast.makeText(mainActivity, "Please stop workout first", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(mainActivity, "Stop workout first", Toast.LENGTH_LONG).show();
                                     }
                                 }
                                 @Override
@@ -225,7 +229,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
         holder.popupMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showPopup(view);
+                showPopup(view, pos);
             }
         });
 
@@ -260,7 +264,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
 
     //  Called when overflow menu is clicked
     //  gives user option to delete all workouts, or share corresponding workout
-    public void showPopup(View v) {
+    public void showPopup(View v, final int pos) {
         PopupMenu popup = new PopupMenu(mainActivity, v);
         MenuInflater inflater = popup.getMenuInflater();
         View view = (View) v.getParent();
@@ -274,6 +278,9 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                         return true;
                     case R.id.shareWorkout:
                         shareWorkout(workout.getText().toString());
+                        return true;
+                    case R.id.resetTime:
+                        resetTime(workout.getText().toString(), pos);
                         return true;
                     default:
                         return false;
@@ -323,7 +330,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                             }
 
                             else{
-                                Toast.makeText(sw.getContext(), "User does not exist", Toast.LENGTH_LONG).show();
+                                Toast.makeText(sw.getContext(), "User doesn't exist", Toast.LENGTH_LONG).show();
                             }
 
                             reference.child(receiver).removeEventListener(this);
@@ -334,6 +341,37 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
 
                         }
                     });
+                }
+            });
+            builder.show();
+        }
+    }
+
+    private void resetTime(final String workoutName, final int pos){
+        if(sw.getContext() != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(sw.getContext());
+            builder.setMessage("Time for this workout will be deleted");
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    final String tableName = workoutName + "TimeTable";
+                    savedWorkoutsModelList.get(pos).setCompletedTime(null);
+                    sw.myRef.child("workouts").child(tableName).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                notifyItemChanged(pos);
+                            }
+                            sw.myRef.child("workouts").child(tableName).removeValue();
+                        }
+                    });
+                    dialogInterface.dismiss();
                 }
             });
             builder.show();
@@ -372,6 +410,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                 }
                 sw.myRef.child("workouts").child(workout).child("list").removeEventListener(this);
                 shareWorkout.setWorkout(rowType);
+
                 //  creates a node that specifies the sender and receiver
                 //  under that node, another node is created specifying the workout name
                 //  this is where the workout is temporarily stored for the receiver, until the receiver declines or accepts

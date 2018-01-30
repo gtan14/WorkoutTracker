@@ -12,16 +12,17 @@ import android.widget.EditText;
 
 public class MaxRowTextWatcher {
 
-    private Profile profile;
+    private MaxAdapter maxAdapter;
     private ExerciseMaxTextListener exerciseMaxTextListener;
     private MaxNumberMaxTextListener maxNumberMaxTextListener;
 
     //  public constructor
     //  initializes text listener and adds listener to edit text
-    public MaxRowTextWatcher(Profile profile, EditText exercise, EditText max){
-        this.profile = profile;
+    public MaxRowTextWatcher(MaxAdapter maxAdapter, EditText exercise, EditText max){
+        this.maxAdapter = maxAdapter;
         exerciseMaxTextListener = new ExerciseMaxTextListener();
         maxNumberMaxTextListener = new MaxNumberMaxTextListener();
+        //updatePosition(position);
         exercise.addTextChangedListener(exerciseMaxTextListener);
         max.addTextChangedListener(maxNumberMaxTextListener);
     }
@@ -52,7 +53,9 @@ public class MaxRowTextWatcher {
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
 
-            profile.maxModelArrayList.get(position).setExercise(charSequence.toString());
+            if(position <= maxAdapter.maxModelList.size() - 1) {
+                maxAdapter.maxModelList.get(position).setExercise(charSequence.toString());
+            }
         }
 
         @Override
@@ -75,7 +78,9 @@ public class MaxRowTextWatcher {
 
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-            profile.maxModelArrayList.get(position).setMax(charSequence.toString());
+            if(position <= maxAdapter.maxModelList.size() - 1) {
+                maxAdapter.maxModelList.get(position).setMax(charSequence.toString());
+            }
         }
 
         @Override

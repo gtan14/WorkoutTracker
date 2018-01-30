@@ -107,12 +107,12 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
 
         @Override
         public void onItemSelected() {
-            //constraintLayout.getBackground().setAlpha(127);
+
         }
 
         @Override
         public void onItemClear() {
-            //constraintLayout.getBackground().setAlpha(255);
+
         }
 
         //  updates position in adapter
@@ -1571,31 +1571,6 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
     }
 
 
-    private void moveData(final DatabaseReference fromPath, final DatabaseReference toPath) {
-        fromPath.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                toPath.setValue(dataSnapshot.getValue(), new DatabaseReference.CompletionListener() {
-                    @Override
-                    public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
-                        if (firebaseError != null) {
-                            System.out.println("Copy failed");
-                        } else {
-                            System.out.println("Success");
-                            fromPath.removeValue();
-                        }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
 
     //  exercise adapter for the exercise EditText
     //  displays the options of exercises
@@ -1626,95 +1601,99 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
     public void addSupersetLayout(){
         CharSequence colors[] = new CharSequence[] {"2", "3", "4", "5", "6", "7", "8", "9", "10"};
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(home.getActivity());
-        builder.setTitle("Pick # of exercises");
-        builder.setItems(colors, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
+        if(home.getActivity() != null) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(home.getActivity());
+            builder.setTitle("Pick # of exercises");
+            builder.setItems(colors, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
 
-                final AlertDialog.Builder builder1 = new AlertDialog.Builder(home.getActivity());
-                builder1.setMessage("Add rest?");
-                builder1.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        SupersetRowModel supersetRowModel = new SupersetRowModel();
+                    final AlertDialog.Builder builder1 = new AlertDialog.Builder(home.getActivity());
+                    builder1.setMessage("Add rest?");
+                    builder1.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SupersetRowModel supersetRowModel = new SupersetRowModel();
 
-                        //  since which is based on 0 index, and rest is being added, it needs to be added by 3
-                        //  Example: user picks 2 (index is 0, so 0 + 3 = 3)
-                        supersetRowModel.setNumberOfChildren(which + 3);
-                        supersetRowModel.setAddRest(true);
-                        rowTypeList.add(1, supersetRowModel);
-                        notifyItemInserted(1);
-                        dialog.dismiss();
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        SupersetRowModel supersetRowModel = new SupersetRowModel();
+                            //  since which is based on 0 index, and rest is being added, it needs to be added by 3
+                            //  Example: user picks 2 (index is 0, so 0 + 3 = 3)
+                            supersetRowModel.setNumberOfChildren(which + 3);
+                            supersetRowModel.setAddRest(true);
+                            rowTypeList.add(1, supersetRowModel);
+                            notifyItemInserted(1);
+                            dialog.dismiss();
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            SupersetRowModel supersetRowModel = new SupersetRowModel();
 
-                        //  since user is not adding rest, which needs to be added by 2
-                        supersetRowModel.setNumberOfChildren(which + 2);
-                        supersetRowModel.setAddRest(false);
-                        rowTypeList.add(1, supersetRowModel);
-                        notifyItemInserted(1);
-                        dialog.dismiss();
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder1.show();
-            }
-        });
+                            //  since user is not adding rest, which needs to be added by 2
+                            supersetRowModel.setNumberOfChildren(which + 2);
+                            supersetRowModel.setAddRest(false);
+                            rowTypeList.add(1, supersetRowModel);
+                            notifyItemInserted(1);
+                            dialog.dismiss();
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder1.show();
+                }
+            });
 
-        builder.show();
+            builder.show();
+        }
     }
 
     //  method that displays alert dialog when user presses add pyramid set
     public void addPyramidSetLayout(){
         CharSequence colors[] = new CharSequence[] {"2", "3", "4", "5", "6", "7", "8", "9", "10"};
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(home.getActivity());
-        builder.setTitle("Pick # of sets");
-        builder.setItems(colors, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
+        if(home.getActivity() != null) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(home.getActivity());
+            builder.setTitle("Pick # of sets");
+            builder.setItems(colors, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
 
-                final AlertDialog.Builder builder1 = new AlertDialog.Builder(home.getActivity());
-                builder1.setMessage("Add rest?");
-                builder1.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        PyramidsetRowModel pyramidsetRowModel = new PyramidsetRowModel();
+                    final AlertDialog.Builder builder1 = new AlertDialog.Builder(home.getActivity());
+                    builder1.setMessage("Add rest?");
+                    builder1.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            PyramidsetRowModel pyramidsetRowModel = new PyramidsetRowModel();
 
-                        //  which needs to be added by 3 because which is based on 0 index and rest is being added
-                        pyramidsetRowModel.setNumberOfChildren(which + 3);
-                        pyramidsetRowModel.setAddRest(true);
-                        rowTypeList.add(1, pyramidsetRowModel);
-                        notifyItemInserted(1);
-                        dialog.dismiss();
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        PyramidsetRowModel pyramidsetRowModel = new PyramidsetRowModel();
+                            //  which needs to be added by 3 because which is based on 0 index and rest is being added
+                            pyramidsetRowModel.setNumberOfChildren(which + 3);
+                            pyramidsetRowModel.setAddRest(true);
+                            rowTypeList.add(1, pyramidsetRowModel);
+                            notifyItemInserted(1);
+                            dialog.dismiss();
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            PyramidsetRowModel pyramidsetRowModel = new PyramidsetRowModel();
 
-                        //  since no rest is added, which only needs to be added by 2
-                        pyramidsetRowModel.setNumberOfChildren(which + 2);
-                        pyramidsetRowModel.setAddRest(false);
-                        rowTypeList.add(1, pyramidsetRowModel);
-                        notifyItemInserted(1);
-                        dialog.dismiss();
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder1.show();
-            }
-        });
+                            //  since no rest is added, which only needs to be added by 2
+                            pyramidsetRowModel.setNumberOfChildren(which + 2);
+                            pyramidsetRowModel.setAddRest(false);
+                            rowTypeList.add(1, pyramidsetRowModel);
+                            notifyItemInserted(1);
+                            dialog.dismiss();
+                            dialogInterface.dismiss();
+                        }
+                    });
+                    builder1.show();
+                }
+            });
 
-        builder.show();
+            builder.show();
+        }
     }
 
 
@@ -1743,6 +1722,9 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
     //  method for setting up the adapter with data from Firebase
     public void setDataForLoadedWorkout(final String workoutName, final DisplayWorkoutAdapter displayWorkoutAdapter, final boolean resume) {
 
+        SharedPreferences autoSaveSharedPref = home.activity.getSharedPreferences("autoSave", Context.MODE_PRIVATE);
+        final String autoSave = autoSaveSharedPref.getString("autoPause", "");
+
         //  reference will change depnding on whether a workout is being resumed
         if(resume){
             loadedWorkoutReference = home.myRef.child(workoutName).child("list");
@@ -1751,6 +1733,7 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
         else{
             loadedWorkoutReference = home.myRef.child("workouts").child(workoutName).child("list");
         }
+
 
         //  uses whatever reference is assigned, and checks if it exists
         loadedWorkoutReference
@@ -1785,40 +1768,37 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
                                 if (viewType != null) {
                                     if (viewType.equals(exerciseView)) {
                                         ExerciseModel exerciseModel = snapshot.getValue(ExerciseModel.class);
-                                        if(resume) {
-                                            exerciseModel.setDisableText(true);
+                                        if(exerciseModel != null) {
+                                            if (resume) {
+                                                exerciseModel.setDisableText(true);
+                                            } else {
+                                                exerciseModel.setDisableText(false);
+                                            }
+                                            rowTypeList.add(exerciseModel);
                                         }
-                                        else{
-                                            exerciseModel.setDisableText(false);
-                                        }
-                                        rowTypeList.add(exerciseModel);
                                     } else if (viewType.equals(restView)) {
                                         RestRowModel restRowModel = snapshot.getValue(RestRowModel.class);
-                                        if(resume) {
-                                            restRowModel.setDisableText(true);
+                                        if(restRowModel != null) {
+                                            if (resume) {
+                                                restRowModel.setDisableText(true);
+                                            } else {
+                                                restRowModel.setDisableText(false);
+                                            }
+                                            rowTypeList.add(restRowModel);
                                         }
-                                        else{
-                                            restRowModel.setDisableText(false);
-                                        }
-                                        rowTypeList.add(restRowModel);
                                     } else if (viewType.equals(supersetView)) {
                                         supersetRowModel = snapshot.getValue(SupersetRowModel.class);
-                                        if(supersetRowModel.getExerciseError() == null){
-                                            Log.d("supersetRow", "q");
-                                        }
-                                        else{
-                                            Log.d("not", "null");
-                                        }
 
-                                        supersetRowModel.setLoadedSuperset(true);
-                                        if(resume){
-                                            supersetRowModel.setDisableText(true);
+                                        if(supersetRowModel != null) {
+                                            supersetRowModel.setLoadedSuperset(true);
+                                            if (resume) {
+                                                supersetRowModel.setDisableText(true);
+                                            } else {
+                                                supersetRowModel.setDisableText(false);
+                                            }
+                                            rowTypeList.add(supersetRowModel);
+                                            childrenInContainer = supersetRowModel.getNumberOfChildren();
                                         }
-                                        else{
-                                            supersetRowModel.setDisableText(false);
-                                        }
-                                        rowTypeList.add(supersetRowModel);
-                                        childrenInContainer = supersetRowModel.getNumberOfChildren();
                                     } else if (viewType.equals(exerciseSuperset)) {
                                         ExerciseModel exerciseModel = snapshot.getValue(ExerciseModel.class);
                                         exerciseModelList.add(exerciseModel);
@@ -1826,32 +1806,37 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
                                         if (pos == childrenInContainer) {
                                             pos = 0;
                                             childrenInContainer = 0;
-                                            supersetRowModel.setExerciseModelList(exerciseModelList);
-                                            supersetRowModel.setAddRest(false);
+                                            if(supersetRowModel != null) {
+                                                supersetRowModel.setExerciseModelList(exerciseModelList);
+                                                supersetRowModel.setAddRest(false);
+                                            }
                                             exerciseModelList = new ArrayList<>();
                                         }
                                     } else if (viewType.equals(restSuperset)) {
                                         RestRowModel restRowModel = snapshot.getValue(RestRowModel.class);
                                         pos++;
                                         if (pos == childrenInContainer) {
-                                            supersetRowModel.setExerciseModelList(exerciseModelList);
-                                            supersetRowModel.setRestRowModel(restRowModel);
-                                            supersetRowModel.setAddRest(true);
+                                            if(supersetRowModel != null) {
+                                                supersetRowModel.setExerciseModelList(exerciseModelList);
+                                                supersetRowModel.setRestRowModel(restRowModel);
+                                                supersetRowModel.setAddRest(true);
+                                            }
                                             exerciseModelList = new ArrayList<>();
                                             pos = 0;
                                             childrenInContainer = 0;
                                         }
                                     } else if (viewType.equals(pyramidSetView)) {
                                         pyramidsetRowModel = snapshot.getValue(PyramidsetRowModel.class);
-                                        pyramidsetRowModel.setLoadedPyramidSet(true);
-                                        if(resume){
-                                            pyramidsetRowModel.setDisableText(true);
+                                        if(pyramidsetRowModel != null) {
+                                            pyramidsetRowModel.setLoadedPyramidSet(true);
+                                            if (resume) {
+                                                pyramidsetRowModel.setDisableText(true);
+                                            } else {
+                                                pyramidsetRowModel.setDisableText(false);
+                                            }
+                                            rowTypeList.add(pyramidsetRowModel);
+                                            childrenInContainer = pyramidsetRowModel.getNumberOfChildren();
                                         }
-                                        else{
-                                            pyramidsetRowModel.setDisableText(false);
-                                        }
-                                        rowTypeList.add(pyramidsetRowModel);
-                                        childrenInContainer = pyramidsetRowModel.getNumberOfChildren();
                                     } else if (viewType.equals(exercisePyramidSet)) {
                                         ExerciseModel exerciseModel = snapshot.getValue(ExerciseModel.class);
                                         exerciseModelList.add(exerciseModel);
@@ -1881,6 +1866,7 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
 
                             //  adds the buttons to the end of the list since the buttons can't be saved to Firebase
                             rowTypeList.add(0, new ButtonsHolder());
+                            stopClicked = true;
 
                             //  called after notifyDataSetChanged() is finished
                             //  if a workout is being resumed, it will scroll to top and will initialize the edit text for the rest countdown if needed
@@ -1951,23 +1937,39 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
 
                         }
 
-                        //  called when a user has a workout in progress and pauses home fragment with no children other than the buttons,
-                        //  and user navigates back to home page
-                        else if(!dataSnapshot.exists() && workoutName.equals("workoutPause")){
-                            rowTypeList.add(0, new ButtonsHolder());
-                            notifyItemInserted(0);
-                        }
-
                         /*
                             This will be called if the app crashes unexpectedly while a workout has started
                             This will reset everything on the home page to normal
+
+                            Also called when a user has a workout in progress and pauses home fragment with no children other than the buttons,
+                            and user navigates back to home page
                          */
                         else{
+
+                            //  if app crashes unexpectedly, reset title to home
+                            if (autoSave.equals("") && !home.titleSet) {
+                                home.activity.setTitle("Home");
+                            }
+
+                            //  sets the title of an empty workout when loaded
+                            //  empty workout meaning no exercises saved in it
+                            else if(home.titleSet){
+                                home.activity.setTitle(workoutName);
+                            }
+
+                            //  sets the title of the workout that is being auto saved
+                            //  used when user is resuming home fragment but workout is not being loaded
+                            else{
+                                home.activity.setTitle(autoSave);
+                            }
+
+
+
                             displayWorkoutAdapter.startClicked = false;
                             displayWorkoutAdapter.stopClicked = true;
                             rowTypeList.add(0, new ButtonsHolder());
                             notifyItemInserted(0);
-                            home.activity.setTitle("Home");
+
                         }
                         loadedWorkoutReference.removeEventListener(this);
                     }
@@ -2097,37 +2099,37 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
                         if (dataSnapshot.exists()) {
                             for(DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                 maxModel maxModel = snapshot.getValue(maxModel.class);
-                                String ex = maxModel.getExercise();
-                                String maxNum = maxModel.getMax();
-                                if(ex.equalsIgnoreCase(exercise.getText().toString())){
+                                if(maxModel != null) {
+                                    String ex = maxModel.getExercise();
+                                    String maxNum = maxModel.getMax();
+                                    if (ex.equalsIgnoreCase(exercise.getText().toString())) {
 
-                                    //  checks if weight has a percentage
-                                    if (weight.getText().toString().contains("%")) {
+                                        //  checks if weight has a percentage
+                                        if (weight.getText().toString().contains("%")) {
 
-                                        //  gets the percent as a decimal
-                                        String multiplier = weight.getText().toString().replace("%", "");
-                                        double decimalMultiplier = Double.parseDouble(multiplier) / 100;
+                                            //  gets the percent as a decimal
+                                            String multiplier = weight.getText().toString().replace("%", "");
+                                            double decimalMultiplier = Double.parseDouble(multiplier) / 100;
 
 
-                                        double maxDouble = Double.parseDouble(maxNum);
-                                        double result = maxDouble * decimalMultiplier;
+                                            double maxDouble = Double.parseDouble(maxNum);
+                                            double result = maxDouble * decimalMultiplier;
 
-                                        //  rounds the converted percent to nearest multiple of 2.5 or 5, depending on user settings
-                                        //  sets the weight as result
+                                            //  rounds the converted percent to nearest multiple of 2.5 or 5, depending on user settings
+                                            //  sets the weight as result
 
-                                        double roundedResult;
+                                            double roundedResult;
 
-                                        if(round.equals("2.5")){
-                                            roundedResult = round2_5(result);
+                                            if (round.equals("2.5")) {
+                                                roundedResult = round2_5(result);
+                                            } else {
+                                                roundedResult = round((int) result);
+                                            }
+                                            DecimalFormat df = new DecimalFormat("###.#");
+                                            weight.setText(String.format("%s", df.format(roundedResult)));
                                         }
 
-                                        else{
-                                            roundedResult = round((int) result);
-                                        }
-                                        DecimalFormat df = new DecimalFormat("###.#");
-                                        weight.setText(String.format("%s", df.format(roundedResult)));
                                     }
-
                                 }
                             }
                         }
