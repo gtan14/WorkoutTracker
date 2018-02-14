@@ -38,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.jar.Attributes;
 
 import static android.R.attr.id;
@@ -66,25 +67,31 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
     protected void onResume(){
         super.onResume();
 
-        //  if receiver is not registered yet, register it
-        //  this prevents 2 alert dialogs from appearing if a workout is sent
-        if(!receiverRegisered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), new IntentFilter("workoutReceived"));
-        }
 
         //  gets the shared pref that is being used to store the sender id and workout name when a user sends a workout
         SharedPreferences sharedPreferences = getSharedPreferences("workoutReceived", Context.MODE_PRIVATE);
-        String senderId = sharedPreferences.getString("senderId", "");
-        String workoutName = sharedPreferences.getString("workoutName", "");
-        if(!senderId.isEmpty() && !workoutName.isEmpty()){
-            LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-            Intent intent = new Intent("workoutReceived");
-            intent.putExtra("sender", senderId);
-            intent.putExtra("workoutName", workoutName);
+        Map<String, ?> keys = sharedPreferences.getAll();
+        if(keys != null) {
 
-            //  Sends broadcast to MainActivity with the sender's username
-            broadcastManager.sendBroadcast(intent);
+            //  if receiver is not registered yet, register it
+            //  this prevents 2 alert dialogs from appearing if a workout is sent
+            if (!receiverRegisered) {
+                LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), new IntentFilter("workoutReceived"));
+            }
+            for (Map.Entry<String, ?> entry : keys.entrySet()) {
+
+                LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+                Intent intent = new Intent("workoutReceived");
+
+                String[] splitString = entry.getKey().split(":");
+                intent.putExtra("sender", splitString[0]);
+                intent.putExtra("workoutName", entry.getValue().toString());
+
+                //  Sends broadcast to MainActivity with the sender's username
+                broadcastManager.sendBroadcast(intent);
+            }
         }
+
     }
 
     @Override
@@ -107,34 +114,17 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent != null){
+
+                //  retrieving extra sent from MainActivity onResume
                 final String sender = intent.getStringExtra("sender");
                 final String workoutName = intent.getStringExtra("workoutName");
+
 
                 //  clears the shared pref that is used to store the sender id and workout name
                 //  necessary so that alert dialog does not keep showing up saying that a workout has been sent
                 SharedPreferences sharedPreferences = getSharedPreferences("workoutReceived", Context.MODE_PRIVATE);
-                sharedPreferences.edit().clear().apply();
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-
-                String message = "Workout sent from " + sender;
-                builder.setMessage(message);
-                builder.setCancelable(false);
-                builder.setNegativeButton("Decline", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        deleteTempSentWorkoutNode(sender, username, workoutName, false);
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        deleteTempSentWorkoutNode(sender, username, workoutName, true);
-                        dialogInterface.dismiss();
-                    }
-                });
-                builder.show();
+                sharedPreferences.edit().remove(sender + ":" + workoutName).apply();
+                showWorkoutReceivedAlertDialog(sender, workoutName);
             }
         }
     };
@@ -327,6 +317,37 @@ public class MainActivity extends navDrawer implements SavedWorkouts.onLoadWorko
 
             }
         });
+    }
+
+    private void showWorkoutReceivedAlertDialog(final String sender, final String workoutName){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        String message = "Workout sent from " + sender;
+        builder.setMessage(message);
+        builder.setCancelable(false);
+        builder.setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteTempSentWorkoutNode(sender, username, workoutName, false);
+                dialogInterface.dismiss();
+            }
+        });
+        builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteTempSentWorkoutNode(sender, username, workoutName, true);
+                dialogInterface.dismiss();
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                String childName = sender + "To" + username;
+                database.getReference("shareWorkout").child(childName).child(workoutName).removeValue();
+            }
+        });
+
+        builder.show();
     }
 
 }

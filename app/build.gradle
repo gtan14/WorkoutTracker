@@ -8,8 +8,8 @@ android {
         applicationId "com.geraldtan.workouttracker"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 8
-        versionName "1.2"
+        versionCode 9
+        versionName "1.0.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -30,7 +30,6 @@ dependencies {
     }
     compile "com.android.support:support-compat:27.0.2"
     compile 'com.google.firebase:firebase-core:11.8.0'
-    compile 'com.mikhaellopez:hfrecyclerview:1.0.0'
     compile 'com.getbase:floatingactionbutton:1.10.1'
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'

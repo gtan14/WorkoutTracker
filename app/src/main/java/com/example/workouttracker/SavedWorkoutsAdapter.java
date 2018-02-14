@@ -415,7 +415,10 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
                 //  under that node, another node is created specifying the workout name
                 //  this is where the workout is temporarily stored for the receiver, until the receiver declines or accepts
                 //  username.replace is used just in case the username contains '.'. This will crash the app since Firebase does not accept '.' in a node name
+                //  removeValue() is used to delete any existing node that is there
+                //  this could be caused by a previous sent workout, and the retriever was not able to decline or accept, thus the node is still existing
                 String childName = sw.username.replace(".", ",") + "To" + receiverName;
+                sw.database.getReference("shareWorkout").child(childName).child(workout).removeValue();
                 sw.database.getReference("shareWorkout").child(childName).child(workout).setValue(shareWorkout);
             }
 
@@ -431,7 +434,7 @@ public class SavedWorkoutsAdapter extends RecyclerView.Adapter<SavedWorkoutsAdap
 
         //  displays alert dialog, asking if user wants to delete all workouts
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
-        builder.setMessage("Are you sure you want to delete all workouts?")
+        builder.setMessage("All workouts will be deleted")
                 .setTitle("Delete")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override

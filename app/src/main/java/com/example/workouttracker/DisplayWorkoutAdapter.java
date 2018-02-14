@@ -1588,7 +1588,7 @@ public class DisplayWorkoutAdapter extends RecyclerView.Adapter implements ItemT
                 .setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        home.recyclerView.requestFocus();
+                        home.frameLayout.requestFocus();
                         rowTypeList.add(position, rowType);
                         home.recyclerView.smoothScrollToPosition(position);
                         notifyItemInserted(position);

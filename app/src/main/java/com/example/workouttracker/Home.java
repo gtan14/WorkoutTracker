@@ -111,7 +111,7 @@ public class Home extends Fragment {
     DatabaseReference myRef;
     private FirebaseAuth mAuth;
     private boolean FABClicked;
-    private FrameLayout frameLayout;
+    public FrameLayout frameLayout;
     private final String TAG = "FIREBASE";
     public LinearLayoutManager layoutManager;
     private String loadedTableName;

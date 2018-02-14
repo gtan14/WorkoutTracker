@@ -61,9 +61,12 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
+
+            //  information sent from FCM
             String sender = remoteMessage.getData().get("senderId");
             String workoutName = remoteMessage.getData().get("workoutName");
-            //String message = "Workout being sent from " + sender;
+
+            //  create new intent that will pass the information received as an extra
             Intent intent = new Intent("workoutReceived");
             intent.putExtra("sender", sender);
             intent.putExtra("workoutName", workoutName);
@@ -75,8 +78,8 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
             //  this is used to get the workout that is being sent from Firebase
             //  cleared when the user receives the alert dialog asking if they want to decline or accept the workout
             SharedPreferences sharedPreferences = this.getSharedPreferences("workoutReceived", Context.MODE_PRIVATE);
-            sharedPreferences.edit().putString("senderId", sender).apply();
-            sharedPreferences.edit().putString("workoutName", workoutName).apply();
+            sharedPreferences.edit().putString(sender + ":" + workoutName, workoutName).apply();
+
 
             //  Sends broadcast to MainActivity with the sender's username
             broadcastManager.sendBroadcast(intent);
@@ -107,6 +110,7 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
                         .setSmallIcon(R.drawable.ic_notification)
                         .setContentTitle("Workout received")
                         .setContentText(message)
+                        .setAutoCancel(true)
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setPriority(Notification.PRIORITY_HIGH);
 
@@ -136,9 +140,16 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
         // mNotificationId is a unique integer your app uses to identify the
         // notification. For example, to cancel the notification, you can pass its ID
         // number to NotificationManager.cancel().
-        final int mNotificationId = 1;
+        SharedPreferences sharedPreferences = getSharedPreferences("workoutReceivedId", Context.MODE_PRIVATE);
+        int uniqueIdFromSharedPref = sharedPreferences.getInt("id", 0);
+        if(uniqueIdFromSharedPref == 1000){
+            sharedPreferences.edit().remove("id").apply();
+            uniqueIdFromSharedPref = 0;
+        }
+        sharedPreferences.edit().putInt("id", uniqueIdFromSharedPref + 1).apply();
+
         if(mNotificationManager != null) {
-            mNotificationManager.notify(mNotificationId, mBuilder.build());
+            mNotificationManager.notify(uniqueIdFromSharedPref, mBuilder.build());
         }
     }
 

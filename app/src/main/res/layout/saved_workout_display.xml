@@ -7,7 +7,7 @@
     android:id="@+id/savedWorkoutDisplayConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="16dp">
+    android:layout_marginBottom="16dp">
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/savedWorkoutNestedConstraint"
@@ -36,11 +36,12 @@
 
         <TextView
             android:id="@+id/timeCompleted"
-            android:layout_width="65dp"
+            android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:layout_alignBaseline="@+id/workout"
             android:layout_alignBottom="@+id/workout"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_toStartOf="@+id/popupMenu"
             android:textAlignment="center"
             android:textColor="@android:color/black"
@@ -52,7 +53,7 @@
 
         <TextView
             android:id="@+id/workout"
-            android:layout_width="150dp"
+            android:layout_width="145dp"
             android:layout_height="75dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
